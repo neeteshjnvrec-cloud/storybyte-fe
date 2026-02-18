@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "StoryByte",
+    "slug": "storybyte",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "storybyte",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.storybyte.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.storybyte.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "MODIFY_AUDIO_SETTINGS",
+        "WAKE_LOCK"
+      ],
+      "allowBackup": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin",
+      "./plugins/withDisableScreenCaptureSecurity",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9c7a92bb-b090-4b07-b191-b2933da82979"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sign-In</title>
+</head>
+<body>
+    <h2>Signing you in...</h2>
+    <script>
+        // Extract token from URL hash
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const idToken = params.get('id_token');
+        
+        if (idToken) {
+            // Send token back to the app
+            console.log('Token received:', idToken.substring(0, 50) + '...');
+            
+            // For Expo web, store in sessionStorage and close
+            sessionStorage.setItem('google_id_token', idToken);
+            
+            // Redirect back to app
+            window.location.href = '/';
+        } else {
+            document.body.innerHTML = '<h2>Error: No token received</h2>';
+        }
+    </script>
+</body>
+</html>
