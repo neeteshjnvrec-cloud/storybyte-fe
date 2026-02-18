@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  // BASE_URL: 'http://localhost:3000/api/v1', // Local testing
-  BASE_URL: 'https://storybyte-be-production.up.railway.app/api/v1', // Production
+  BASE_URL: 'http://localhost:3000/api/v1', // Local testing
+  // BASE_URL: 'https://storybyte-be-production.up.railway.app/api/v1', // Production
   TIMEOUT: 60000,
 };
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
 
 export const PlayerScreen = ({ route }: any) => {
   const { story } = route.params;
@@ -10,7 +10,7 @@ export const PlayerScreen = ({ route }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.gradient}>
+      <LinearGradient colors={[APP_COLORS.gradientStart, APP_COLORS.gradientEnd]} style={styles.gradient}>
         <View style={styles.content}>
           <View style={styles.artwork}>
             <Text style={styles.artworkText}>{story.title[0]}</Text>
@@ -40,14 +40,14 @@ export const PlayerScreen = ({ route }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   gradient: { flex: 1 },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
-  artwork: { width: 200, height: 200, borderRadius: BORDER_RADIUS.xl, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: SPACING.xl },
-  artworkText: { fontSize: 80, color: COLORS.text, fontWeight: 'bold' },
-  title: { ...TYPOGRAPHY.h1, color: COLORS.text, textAlign: 'center' },
-  category: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, marginTop: SPACING.sm },
-  controls: { flexDirection: 'row', alignItems: 'center', marginTop: SPACING.xxl },
-  controlButton: { padding: SPACING.md },
-  controlText: { fontSize: 32, color: COLORS.text },
-  playButton: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.text, justifyContent: 'center', alignItems: 'center', marginHorizontal: SPACING.lg },
-  playText: { fontSize: 32, color: COLORS.primary },
+  content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: APP_SPACING.lg },
+  artwork: { width: 200, height: 200, borderRadius: APP_BORDER_RADIUS.xl, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: APP_SPACING.xl },
+  artworkText: { fontSize: 80, color: APP_COLORS.text, fontWeight: 'bold' },
+  title: { ...APP_TYPOGRAPHY.h1, color: APP_COLORS.text, textAlign: 'center' },
+  category: { ...APP_TYPOGRAPHY.body, color: APP_COLORS.textSecondary, marginTop: APP_SPACING.sm },
+  controls: { flexDirection: 'row', alignItems: 'center', marginTop: APP_SPACING.xxl },
+  controlButton: { padding: APP_SPACING.md },
+  controlText: { fontSize: 32, color: APP_COLORS.text },
+  playButton: { width: 80, height: 80, borderRadius: 40, backgroundColor: APP_COLORS.text, justifyContent: 'center', alignItems: 'center', marginHorizontal: APP_SPACING.lg },
+  playText: { fontSize: 32, color: APP_COLORS.primary },
 });

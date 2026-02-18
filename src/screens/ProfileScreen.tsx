@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
 
 export const ProfileScreen = () => {
   const { user, logout } = useAuth();
@@ -33,13 +33,13 @@ export const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { padding: SPACING.lg },
-  headerTitle: { ...TYPOGRAPHY.h1, color: COLORS.text },
-  content: { padding: SPACING.md },
-  profileCard: { backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.md, padding: SPACING.lg, marginBottom: SPACING.lg },
-  name: { ...TYPOGRAPHY.h2, color: COLORS.text },
-  email: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, marginTop: SPACING.xs },
-  logoutButton: { backgroundColor: COLORS.error, borderRadius: BORDER_RADIUS.md, padding: SPACING.md, alignItems: 'center' },
-  logoutButtonText: { ...TYPOGRAPHY.h3, color: COLORS.text },
+  container: { flex: 1, backgroundColor: APP_COLORS.background },
+  header: { padding: APP_SPACING.lg },
+  headerTitle: { ...APP_TYPOGRAPHY.h1, color: APP_COLORS.text },
+  content: { padding: APP_SPACING.md },
+  profileCard: { backgroundColor: APP_COLORS.surface, borderRadius: APP_BORDER_RADIUS.md, padding: APP_SPACING.lg, marginBottom: APP_SPACING.lg },
+  name: { ...APP_TYPOGRAPHY.h2, color: APP_COLORS.text },
+  email: { ...APP_TYPOGRAPHY.body, color: APP_COLORS.textSecondary, marginTop: APP_SPACING.xs },
+  logoutButton: { backgroundColor: APP_COLORS.error, borderRadius: APP_BORDER_RADIUS.md, padding: APP_SPACING.md, alignItems: 'center' },
+  logoutButtonText: { ...APP_TYPOGRAPHY.h3, color: APP_COLORS.text },
 });

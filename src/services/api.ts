@@ -116,6 +116,19 @@ class ApiService {
     return data;
   }
 
+  async getUserRating(storyId: string) {
+    const { data } = await this.api.get(`/stories/${storyId}/rating`);
+    return data;
+  }
+
+  async getReviews(storyId: string, limit: number = 10, skip: number = 0) {
+    const { data } = await this.api.get(`/stories/${storyId}/reviews`, { 
+      params: { limit, skip } 
+    });
+    return data;
+  }
+
+
   // User APIs
   async getProfile() {
     const { data } = await this.api.get('/user/profile');

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../constants/theme';
+import { APP_COLORS } from '../constants/appTheme';
 
 // Auth Screens
 import { LoginScreen } from '../screens/LoginScreen';
@@ -27,11 +27,11 @@ const TabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
-          borderTopColor: COLORS.border,
+          backgroundColor: APP_COLORS.surface,
+          borderTopColor: APP_COLORS.border,
         },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarActiveTintColor: APP_COLORS.primary,
+        tabBarInactiveTintColor: APP_COLORS.textSecondary,
       }}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
@@ -47,7 +47,7 @@ const AuthNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: APP_COLORS.background },
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
@@ -62,7 +62,7 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: APP_COLORS.background },
       }}
     >
       <Stack.Screen name="Tabs" component={TabNavigator} />
