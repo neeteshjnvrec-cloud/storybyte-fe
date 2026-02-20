@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "863084826254",
+    "project_id": "storybytes-e7576",
+    "storage_bucket": "storybytes-e7576.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863084826254:android:046054bef7172e20c143df",
+        "android_client_info": {
+          "package_name": "com.storybyte.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYjLWuyXiPuXMo7BVyqcDBv45uv4AeRhI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

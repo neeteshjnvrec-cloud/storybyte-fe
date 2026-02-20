@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
 
 export const Loader = ({ message = 'Loading...' }: { message?: string }) => {
+  const { isDark } = useTheme();
+  const theme = isDark ? darkTheme : lightTheme;
   const spinValue = useRef(new Animated.Value(0)).current;
   const pulseValue = useRef(new Animated.Value(1)).current;
 
@@ -45,7 +48,7 @@ export const Loader = ({ message = 'Loading...' }: { message?: string }) => {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Animated.View
         style={[
           styles.loaderContainer,
@@ -60,10 +63,10 @@ export const Loader = ({ message = 'Loading...' }: { message?: string }) => {
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
         >
-          <View style={styles.innerCircle} />
+          <View style={[styles.innerCircle, { backgroundColor: theme.background }]} />
         </LinearGradient>
       </Animated.View>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: theme.text }]}>{message}</Text>
       <View style={styles.dotsContainer}>
         {[0, 1, 2].map((i) => (
           <Animated.View
@@ -89,7 +92,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0a0a0a',
   },
   loaderContainer: {
     width: 80,
@@ -108,12 +110,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#0a0a0a',
   },
   message: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 16,
   },
   dotsContainer: {

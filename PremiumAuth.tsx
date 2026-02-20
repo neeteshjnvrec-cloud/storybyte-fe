@@ -6,6 +6,8 @@ import { premiumStyles as styles } from './premium-styles';
 import { Logo } from './src/components';
 
 export function LoginScreen({ email, setEmail, password, setPassword, loading, onLogin, onForgot, onSignup, onGoogleSignIn }: any) {
+  const [showPassword, setShowPassword] = React.useState(false);
+  
   return (
     <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={{ flex: 1 }}>
       <View style={{ paddingTop: 60, paddingHorizontal: 24, paddingBottom: 16 }}>
@@ -48,8 +50,11 @@ export function LoginScreen({ email, setEmail, password, setPassword, loading, o
                   placeholderTextColor="#8b9dc3"
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry={true}
+                  secureTextEntry={!showPassword}
                 />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 8 }}>
+                  <Text style={{ fontSize: 18 }}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -93,6 +98,8 @@ export function LoginScreen({ email, setEmail, password, setPassword, loading, o
 }
 
 export function SignupScreen({ name, setName, email, setEmail, password, setPassword, loading, onSignup, onLogin, onGoogleSignIn }: any) {
+  const [showPassword, setShowPassword] = React.useState(false);
+  
   return (
     <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={{ flex: 1 }}>
       <View style={{ paddingTop: 60, paddingHorizontal: 24, paddingBottom: 16 }}>
@@ -149,8 +156,11 @@ export function SignupScreen({ name, setName, email, setEmail, password, setPass
                   placeholderTextColor="#8b9dc3"
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry={true}
+                  secureTextEntry={!showPassword}
                 />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 8 }}>
+                  <Text style={{ fontSize: 18 }}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                </TouchableOpacity>
               </View>
             </View>
 

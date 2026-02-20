@@ -23,31 +23,36 @@
       },
       "package": "com.storybyte.app",
       "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
       "permissions": [
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "MODIFY_AUDIO_SETTINGS",
-        "WAKE_LOCK"
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.WAKE_LOCK",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "allowBackup": true
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
-      "expo-web-browser",
-      "@react-native-google-signin/google-signin",
-      "./plugins/withDisableScreenCaptureSecurity",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true
-          }
-        }
-      ],
-      "expo-audio"
-    ],
+  "expo-web-browser",
+  "@react-native-google-signin/google-signin",
+  "./plugins/withDisableScreenCaptureSecurity",
+  "./plugins/withNetworkSecurity",
+  [
+    "expo-build-properties",
+    {
+      "android": {
+        "usesCleartextTraffic": true,
+        "compileSdkVersion": 35,
+        "targetSdkVersion": 35,
+        "minSdkVersion": 24
+      }
+    }
+  ],
+  "expo-audio",
+  "expo-asset"
+],
     "extra": {
       "eas": {
         "projectId": "9c7a92bb-b090-4b07-b191-b2933da82979"

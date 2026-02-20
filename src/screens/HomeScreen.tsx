@@ -67,6 +67,7 @@ export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLangu
       <TouchableOpacity 
         style={styles.premiumCard}
         onPress={() => {
+          console.log('Card clicked:', item);
           setSelectedStory(item);
           setScreen('detail');
         }}

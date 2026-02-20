@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import ApiService from '../services/api';
 import { Story } from '../types';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
+import { Loader } from '../components';
 
 export const FavoritesScreen = ({ navigation }: any) => {
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
   const [favorites, setFavorites] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const styles = StyleSheet.create({
     container: { 
@@ -74,17 +76,57 @@ export const FavoritesScreen = ({ navigation }: any) => {
     cardContent: {
       marginLeft: 16,
     },
+    storyContent: {
+      flex: 1,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+      paddingRight: 50,
+    },
+    languageBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: APP_BORDER_RADIUS.sm,
+      borderWidth: 2,
+    },
+    languageText: {
+      ...APP_TYPOGRAPHY.caption,
+      fontWeight: '700' as const,
+    },
     storyTitle: {
       ...APP_TYPOGRAPHY.h3,
       color: theme.text,
       fontWeight: '700' as const,
       marginBottom: 8,
+      flex: 1,
+      marginRight: 8,
     },
     storyDescription: {
       ...APP_TYPOGRAPHY.body,
       color: theme.textSecondary,
       marginBottom: 12,
       lineHeight: 20,
+    },
+    storyMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap',
+    },
+    ratingBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: APP_BORDER_RADIUS.md,
+      borderWidth: 2,
+    },
+    playsBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: APP_BORDER_RADIUS.md,
+      borderWidth: 2,
     },
     metaRow: {
       flexDirection: 'row',
@@ -131,20 +173,56 @@ export const FavoritesScreen = ({ navigation }: any) => {
       color: theme.textSecondary,
       textAlign: 'center',
     },
+    favoriteButton: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 44,
+      height: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+    },
   });
 
   useEffect(() => {
     loadFavorites();
   }, []);
 
-  const loadFavorites = async () => {
+  const loadFavorites = async (forceRefresh = false) => {
+    // Skip if already have favorites and not forcing refresh
+    if (!forceRefresh && favorites.length > 0 && !loading) {
+      console.log('Using cached favorites, skipping API call');
+      return;
+    }
+    
     try {
+      console.log('Loading favorites...');
       const response = await ApiService.getFavorites();
-      setFavorites(response.favorites);
+      console.log('Favorites response:', response);
+      console.log('Number of favorites:', response.favorites?.length || 0);
+      setFavorites(response.favorites || []);
     } catch (error) {
       console.error('Failed to load favorites:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadFavorites(true);
+  };
+
+  const handleToggleFavorite = async (storyId: string) => {
+    try {
+      await ApiService.toggleFavorite(storyId);
+      // Remove from list
+      setFavorites(favorites.filter(story => story._id !== storyId && story.id !== storyId));
+    } catch (error) {
+      console.error('Failed to remove favorite:', error);
+      Alert.alert('Error', 'Failed to remove from favorites');
     }
   };
 
@@ -175,6 +253,12 @@ export const FavoritesScreen = ({ navigation }: any) => {
           style={styles.gradientBackground}
         >
           <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <TouchableOpacity 
+            style={styles.favoriteButton}
+            onPress={() => handleToggleFavorite(item._id || item.id)}
+          >
+            <Text style={{ fontSize: 24 }}>❤️</Text>
+          </TouchableOpacity>
           <View style={styles.storyContent}>
             <View style={styles.titleRow}>
               <Text style={styles.storyTitle} numberOfLines={2}>{item.title}</Text>
@@ -209,11 +293,7 @@ export const FavoritesScreen = ({ navigation }: any) => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={APP_COLORS.primary} />
-      </View>
-    );
+    return <Loader message="Loading favorites..." />;
   }
 
   return (
@@ -232,9 +312,16 @@ export const FavoritesScreen = ({ navigation }: any) => {
         <FlatList
           data={favorites}
           renderItem={renderStory}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id || item.id}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={APP_COLORS.primary}
+            />
+          }
         />
       )}
     </SafeAreaView>

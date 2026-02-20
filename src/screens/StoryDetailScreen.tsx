@@ -11,12 +11,32 @@ export const StoryDetailScreen = ({
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
 
+  // Safety check
+  if (!story) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+        <Text style={{ color: theme.text }}>Story not found</Text>
+        <TouchableOpacity onPress={onBack} style={{ marginTop: 20, padding: 10, backgroundColor: '#667eea', borderRadius: 8 }}>
+          <Text style={{ color: '#fff' }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background },
     header: { padding: 24, paddingTop: 60, paddingBottom: 30, justifyContent: 'flex-end' },
     backBtn: { marginBottom: 20 },
     backBtnText: { color: '#667eea', fontWeight: '700', fontSize: 16 },
-    title: { fontSize: 32, fontWeight: '800', color: theme.text, marginBottom: 8 },
+    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    favoriteBtn: { 
+      width: 48, 
+      height: 48, 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      marginLeft: 12,
+    },
+    title: { fontSize: 32, fontWeight: '800', color: theme.text, marginBottom: 8, flex: 1 },
     author: { color: theme.textSecondary, marginTop: 5, fontSize: 16 },
     content: { padding: 24, backgroundColor: theme.background, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30, paddingBottom: 40 },
     playerCard: { borderRadius: 20, marginBottom: 20, overflow: 'hidden' },
@@ -166,12 +186,42 @@ export const StoryDetailScreen = ({
   const [userRating, setUserRating] = useState<any>(null);
   const [hasRated, setHasRated] = useState(false);
   const [storyData, setStoryData] = useState(story);
+  const [isFavorited, setIsFavorited] = useState(false);
   const progress = duration > 0 ? (position / duration) * 100 : 0;
 
   useEffect(() => {
+    console.log('StoryDetailScreen mounted with story:', story);
     fetchStoryDetails();
     fetchUserRating();
+    checkIfFavorited();
   }, [story._id || story.id]);
+
+  const checkIfFavorited = async () => {
+    try {
+      const storyId = story._id || story.id;
+      const response = await ApiService.getFavorites();
+      const isFav = response.favorites.some((fav: any) => 
+        (fav._id === storyId || fav.id === storyId)
+      );
+      console.log('Is favorited:', isFav);
+      setIsFavorited(isFav);
+    } catch (error) {
+      console.error('Failed to check favorite status:', error);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    try {
+      console.log('Toggling favorite for story:', story._id || story.id);
+      const response = await ApiService.toggleFavorite(story._id || story.id);
+      console.log('Toggle favorite response:', response);
+      setIsFavorited(response.favorited);
+      Alert.alert('Success', response.favorited ? 'Added to favorites!' : 'Removed from favorites');
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      Alert.alert('Error', 'Failed to update favorite');
+    }
+  };
 
   const fetchUserRating = async () => {
     try {
@@ -188,6 +238,7 @@ export const StoryDetailScreen = ({
 
   const fetchStoryDetails = async () => {
     try {
+      console.log('Fetching reviews for story:', story._id || story.id);
       const reviewsData = await ApiService.getReviews(story._id || story.id);
       console.log('Reviews data:', reviewsData);
       setReviews(reviewsData.reviews || []);
@@ -197,6 +248,9 @@ export const StoryDetailScreen = ({
       setStoryData(updatedStory);
     } catch (error) {
       console.error('Failed to fetch reviews:', error);
+      // Set empty reviews on error to prevent crash
+      setReviews([]);
+      setStoryData(story);
     } finally {
       setLoadingReviews(false);
     }
@@ -285,7 +339,14 @@ export const StoryDetailScreen = ({
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
             <Text style={styles.backBtnText}>← Library</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>{story.title}</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>{story.title}</Text>
+            <TouchableOpacity onPress={handleToggleFavorite} style={styles.favoriteBtn}>
+              <Text style={{ fontSize: 28, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
+                {isFavorited ? '❤️' : '🤍'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.author}>by {story.author || 'StoryByte'}</Text>
         </LinearGradient>
 
