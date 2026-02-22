@@ -21,7 +21,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_NO_CAPABILITY_SYNC": "1"
+        "EXPO_NO_CAPABILITY_SYNC": "1",
+        "GOOGLE_SERVICES_JSON": "./google-services.json"
       }
     },
     "production": {

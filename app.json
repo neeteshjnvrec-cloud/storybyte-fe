@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "StoryByte",
-    "slug": "storybyte",
+    "slug": "storybyte-app",
+    "owner": "neeteshjnv",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -30,32 +31,36 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.WAKE_LOCK",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ],
       "allowBackup": true
     },
     "plugins": [
-  "expo-web-browser",
-  "@react-native-google-signin/google-signin",
-  "./plugins/withDisableScreenCaptureSecurity",
-  "./plugins/withNetworkSecurity",
-  [
-    "expo-build-properties",
-    {
-      "android": {
-        "usesCleartextTraffic": true,
-        "compileSdkVersion": 35,
-        "targetSdkVersion": 35,
-        "minSdkVersion": 24
-      }
-    }
-  ],
-  "expo-audio",
-  "expo-asset"
-],
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin",
+      "./plugins/withDisableScreenCaptureSecurity",
+      "./plugins/withNetworkSecurity",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ],
+      "expo-audio",
+      "expo-asset"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "eas": {
-        "projectId": "9c7a92bb-b090-4b07-b191-b2933da82979"
+        "projectId": "f2d73672-10ed-4c48-a462-da23ce798bcc"
       }
     }
   }

@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BookIcon, StarIcon, HeartIcon } from '../components/Icons';
 import ApiService from '../services/api';
 import { Story } from '../types';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
 import { Loader } from '../components';
 
-export const FavoritesScreen = ({ navigation }: any) => {
+export const FavoritesScreen = ({ navigation, favorites, setFavorites }: any) => {
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
-  const [favorites, setFavorites] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(favorites.length === 0);
   const [refreshing, setRefreshing] = useState(false);
 
   const styles = StyleSheet.create({
@@ -186,7 +186,12 @@ export const FavoritesScreen = ({ navigation }: any) => {
   });
 
   useEffect(() => {
-    loadFavorites();
+    // Only load if we don't have favorites yet
+    if (favorites.length === 0) {
+      loadFavorites();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const loadFavorites = async (forceRefresh = false) => {
@@ -257,7 +262,7 @@ export const FavoritesScreen = ({ navigation }: any) => {
             style={styles.favoriteButton}
             onPress={() => handleToggleFavorite(item._id || item.id)}
           >
-            <Text style={{ fontSize: 24 }}>❤️</Text>
+            <HeartIcon color="#ec4899" size={24} filled />
           </TouchableOpacity>
           <View style={styles.storyContent}>
             <View style={styles.titleRow}>
@@ -273,9 +278,12 @@ export const FavoritesScreen = ({ navigation }: any) => {
             </Text>
             <View style={styles.storyMeta}>
               <View style={[styles.ratingBadge, { backgroundColor: accentColor + '80', borderColor: accentColor }]}>
-                <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
-                  ⭐ {item.averageRating?.toFixed(1) || '0.0'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <StarIcon color="#fff" size={14} filled />
+                  <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
+                    {item.averageRating?.toFixed(1) || '0.0'}
+                  </Text>
+                </View>
               </View>
               <View style={[styles.playsBadge, { backgroundColor: accentColor + '80', borderColor: accentColor }]}>
                 <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
@@ -299,12 +307,15 @@ export const FavoritesScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>❤️ Favorites</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <HeartIcon color="#ec4899" size={24} filled />
+          <Text style={styles.headerTitle}>Favorites</Text>
+        </View>
         <Text style={styles.headerSubtitle}>{favorites.length} saved stories</Text>
       </View>
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>📚</Text>
+          <BookIcon color="#9ca3af" size={64} />
           <Text style={styles.emptyText}>No favorites yet</Text>
           <Text style={styles.emptySubtext}>Start exploring stories to add them here!</Text>
         </View>

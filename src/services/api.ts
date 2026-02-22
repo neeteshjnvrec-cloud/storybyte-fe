@@ -154,6 +154,16 @@ class ApiService {
     const { data } = await this.api.get('/user/stats');
     return data;
   }
+
+  async updateProgress(storyId: string, page: number, position: number) {
+    const { data } = await this.api.post(`/stories/${storyId}/progress`, { page, position });
+    return data;
+  }
+
+  async getProgress(storyId: string) {
+    const { data } = await this.api.get(`/stories/${storyId}/progress`);
+    return data;
+  }
 }
 
 export default new ApiService();

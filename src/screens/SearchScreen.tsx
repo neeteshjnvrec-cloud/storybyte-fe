@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SearchIcon, StarIcon } from '../components/Icons';
 import ApiService from '../services/api';
 import { Story } from '../types';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
@@ -65,9 +66,12 @@ export const SearchScreen = ({ navigation }: any) => {
             </Text>
             <View style={styles.storyMeta}>
               <View style={[styles.ratingBadge, { backgroundColor: accentColor + '80', borderColor: accentColor }]}>
-                <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
-                  ⭐ {item.averageRating?.toFixed(1) || '0.0'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <StarIcon color="#fff" size={14} filled />
+                  <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
+                    {item.averageRating?.toFixed(1) || '0.0'}
+                  </Text>
+                </View>
               </View>
               <View style={[styles.playsBadge, { backgroundColor: accentColor + '80', borderColor: accentColor }]}>
                 <Text style={[styles.metaText, { color: '#FFFFFF', fontWeight: '700' }]}>
@@ -89,7 +93,7 @@ export const SearchScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🔍 Search</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><SearchIcon color="#667eea" size={24} /><Text style={styles.headerTitle}>Search</Text></View>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
@@ -102,7 +106,7 @@ export const SearchScreen = ({ navigation }: any) => {
       </View>
       {results.length === 0 && query.length > 2 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>🔎</Text>
+          <SearchIcon color="#9ca3af" size={64} />
           <Text style={styles.emptyText}>No results found</Text>
           <Text style={styles.emptySubtext}>Try searching with different keywords</Text>
         </View>

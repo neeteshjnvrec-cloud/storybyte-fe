@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { HeadphonesIcon, BookOpenIcon, StarIcon, PhoneIcon, BookmarkIcon, LightningIcon, HeartIcon, TargetIcon, ChartIcon } from '../components/Icons';
 import { Logo } from '../components';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
@@ -25,9 +26,9 @@ const slides = [
     title: 'Discover Stories\nThat Move You',
     description: 'Explore thousands of audiobooks across every genre. From thrilling mysteries to heartwarming romances.',
     features: [
-      '🎧 Premium audio quality',
-      '📚 Unlimited listening',
-      '⭐ Curated collections',
+      { icon: 'headphones', text: 'Premium audio quality' },
+      { icon: 'book', text: 'Unlimited listening' },
+      { icon: 'star', text: 'Curated collections' },
     ],
   },
   {
@@ -35,9 +36,9 @@ const slides = [
     title: 'Listen Anywhere,\nAnytime',
     description: 'Your stories follow you everywhere. Seamless playback with offline downloads and smart bookmarks.',
     features: [
-      '📱 Offline downloads',
-      '🔖 Auto-bookmark progress',
-      '⚡ Fast streaming',
+      { icon: 'phone', text: 'Offline downloads' },
+      { icon: 'bookmark', text: 'Auto-bookmark progress' },
+      { icon: 'lightning', text: 'Fast streaming' },
     ],
   },
   {
@@ -45,9 +46,9 @@ const slides = [
     title: 'Your Personal\nAudio Library',
     description: 'Build your collection, track your favorites, and get personalized recommendations.',
     features: [
-      '❤️ Save favorites',
-      '🎯 Smart recommendations',
-      '📊 Track your journey',
+      { icon: 'heart', text: 'Save favorites' },
+      { icon: 'target', text: 'Smart recommendations' },
+      { icon: 'chart', text: 'Track your journey' },
     ],
   },
 ];
@@ -86,11 +87,39 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         <Text style={styles.description}>{item.description}</Text>
 
         <View style={styles.featuresContainer}>
-          {item.features.map((feature, index) => (
-            <View key={index} style={styles.featureItem}>
-              <Text style={styles.featureText}>{feature}</Text>
-            </View>
-          ))}
+          {item.features.map((feature, index) => {
+            // Assign specific colors based on icon type
+            const iconColor = 
+              feature.icon === 'headphones' ? '#10b981' : // green for audio
+              feature.icon === 'phone' ? '#f59e0b' : // orange for offline
+              feature.icon === 'heart' ? '#ec4899' : // pink for heart
+              feature.icon === 'bookmark' ? '#06b6d4' : // cyan for bookmark
+              feature.icon === 'book' ? '#667eea' : // purple for book
+              feature.icon === 'star' ? '#f59e0b' : // orange for star
+              feature.icon === 'lightning' ? '#fbbf24' : // bright yellow for lightning
+              feature.icon === 'target' ? '#667eea' : // purple for target
+              '#10b981'; // green for chart
+            
+            const IconComponent = 
+              feature.icon === 'headphones' ? HeadphonesIcon :
+              feature.icon === 'book' ? BookOpenIcon :
+              feature.icon === 'star' ? StarIcon :
+              feature.icon === 'phone' ? PhoneIcon :
+              feature.icon === 'bookmark' ? BookmarkIcon :
+              feature.icon === 'lightning' ? LightningIcon :
+              feature.icon === 'heart' ? HeartIcon :
+              feature.icon === 'target' ? TargetIcon :
+              ChartIcon;
+            
+            return (
+              <View key={index} style={styles.featureItem}>
+                <View style={styles.iconContainer}>
+                  <IconComponent color={iconColor} size={20} />
+                </View>
+                <Text style={styles.featureText}>{feature.text}</Text>
+              </View>
+            );
+          })}
         </View>
       </View>
     </ScrollView>
@@ -237,12 +266,23 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.sm,
     paddingVertical: SPACING.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   featureText: {
     ...TYPOGRAPHY.body,

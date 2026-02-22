@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SearchIcon, StarIcon } from '../components/Icons';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
 
 export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLanguage, setSelectedLanguage, onLoadMore, hasMore, loadingMore }: any) => {
@@ -93,7 +94,10 @@ export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLangu
             
             <View style={styles.cardFooter}>
               <View style={styles.statGroup}>
-                <Text style={styles.statText}>⭐ {item.averageRating?.toFixed(1) || '0.0'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <StarIcon color="#f59e0b" size={14} filled />
+                  <Text style={styles.statText}>{item.averageRating?.toFixed(1) || '0.0'}</Text>
+                </View>
                 <Text style={[styles.statText, { marginLeft: 12 }]}>▶ {item.plays || 0}</Text>
               </View>
               <Text style={[styles.readMore, { color: cardColor }]}>Listen Now →</Text>
@@ -109,7 +113,7 @@ export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLangu
       {/* Search Bar */}
       <View style={styles.searchSection}>
         <View style={styles.searchWrapper}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <SearchIcon color={theme.textSecondary} size={20} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search stories..."

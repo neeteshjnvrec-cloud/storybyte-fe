@@ -2,16 +2,16 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, Alert, ActivityIndicator, 
-  ScrollView, TouchableOpacity, Platform 
+  ScrollView, TouchableOpacity, Platform, RefreshControl 
 } from 'react-native';
-import { useAudioPlayer } from 'expo-audio';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path } from 'react-native-svg';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screens & Components
 import { LoginScreen, SignupScreen, ForgotPasswordScreen, OnboardingScreen } from './PremiumAuth';
-import { Logo, Loader } from './src/components';
+import { Logo, Loader, FloatingAudioPlayer, StarIcon, HeartIcon, ClockIcon, BookOpenIcon, HeadphonesIcon, CheckCircleIcon, Toast } from './src/components';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 
@@ -20,7 +20,8 @@ import ApiService from './src/services/api';
 import { signInWithGoogle } from './src/services/googleAuth';
 import { API_CONFIG } from './src/constants/config';
 import { StoryDetailScreen } from './src/screens/StoryDetailScreen';
-import { useTheme, lightTheme, darkTheme } from './src/hooks/useTheme';
+import { useTheme, ThemeProvider, lightTheme, darkTheme } from './src/hooks/useTheme';
+import { AudioPlayerProvider, useAudioPlayer } from './src/context/AudioPlayerContext';
 
 // --- Types ---
 interface User {
@@ -44,7 +45,7 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default function App() {
+function AppContent() {
   // Navigation & UI State
   const [screen, setScreen] = useState<string>('loading'); // Start with loading state
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -54,6 +55,56 @@ export default function App() {
   // Theme
   const { themeMode, changeTheme, isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
+  
+  // Audio Player Toast
+  const { toastVisible, toastMessage } = useAudioPlayer();
+  const [localToastVisible, setLocalToastVisible] = useState(false);
+
+  // Icon components
+  const HomeIcon = ({ color }: { color: string }) => (
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path d="M10.0693 2.81984L3.13929 8.36983C2.35929 8.98983 1.85929 10.2999 2.02929 11.2799L3.35929 19.2398C3.59929 20.6598 4.95928 21.8098 6.39928 21.8098H17.5993C19.0293 21.8098 20.3993 20.6498 20.6393 19.2398L21.9693 11.2799C22.1293 10.2999 21.6293 8.98983 20.8593 8.36983L13.9293 2.82985C12.8593 1.96985 11.1293 1.96984 10.0693 2.81984Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <Path d="M12 15.5C13.3807 15.5 14.5 14.3807 14.5 13C14.5 11.6193 13.3807 10.5 12 10.5C10.6193 10.5 9.5 11.6193 9.5 13C9.5 14.3807 10.6193 15.5 12 15.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const ProfileIcon = ({ color }: { color: string }) => (
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <Path d="M20.5899 22C20.5899 18.13 16.7399 15 11.9999 15C7.25991 15 3.40991 18.13 3.40991 22" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const GenresIcon = ({ color }: { color: string }) => (
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path d="M22 16.74V4.67C22 3.47 21.02 2.58 19.83 2.68H19.77C17.67 2.86 14.48 3.93 12.7 5.05L12.53 5.16C12.24 5.34 11.76 5.34 11.47 5.16L11.22 5.01C9.44 3.9 6.26 2.84 4.16 2.67C2.97 2.57 2 3.47 2 4.66V16.74C2 17.7 2.78 18.6 3.74 18.72L4.03 18.76C6.2 19.05 9.55 20.15 11.47 21.2L11.51 21.22C11.78 21.37 12.21 21.37 12.47 21.22C14.39 20.16 17.75 19.05 19.93 18.76L20.26 18.72C21.22 18.6 22 17.7 22 16.74Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <Path d="M12 5.49V20.49" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const FavoritesIcon = ({ color }: { color: string }) => (
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <Path d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.69C2 5.6 4.49 3.1 7.56 3.1C9.38 3.1 10.99 3.98 12 5.34C13.01 3.98 14.63 3.1 16.44 3.1C19.51 3.1 22 5.6 22 8.69C22 15.69 15.52 19.82 12.62 20.81Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const SunIcon = ({ color }: { color: string }) => (
+    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <Path d="M12 2V4M12 20V22M4 12H2M6.31412 6.31412L4.8999 4.8999M17.6859 6.31412L19.1001 4.8999M6.31412 17.69L4.8999 19.1042M17.6859 17.69L19.1001 19.1042M22 12H20M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const MoonIcon = ({ color }: { color: string }) => (
+    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  );
+
+  const SystemIcon = ({ color }: { color: string }) => (
+    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <Path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20V4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill={color}/>
+    </Svg>
+  );
 
   const styles = StyleSheet.create({
     homeContainer: { flex: 1, backgroundColor: theme.background },
@@ -61,7 +112,8 @@ export default function App() {
     headerTitle: { fontSize: 24, fontWeight: '700', color: theme.text },
     tabBar: { flexDirection: 'row', backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.border, paddingBottom: 25 },
     tab: { flex: 1, alignItems: 'center', paddingVertical: 10 },
-    tabLabel: { fontSize: 20 },
+    tabIcon: { fontSize: 28, color: theme.textSecondary },
+    tabIconActive: { color: '#667eea' },
     tabSubLabel: { fontSize: 10, color: theme.textSecondary, marginTop: 2 },
     tabLabelActive: { color: '#667eea' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -81,7 +133,7 @@ export default function App() {
     historyItem: { borderRadius: 12, overflow: 'hidden', marginBottom: 12 },
     historyGradient: { padding: 16 },
     historyHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    historyIcon: { fontSize: 24 },
+    historyIcon: { marginRight: 12 },
     historyInfo: { flex: 1 },
     historyStatus: { fontSize: 16, fontWeight: '600', color: theme.text, marginBottom: 4 },
     historyDate: { fontSize: 13, color: theme.textSecondary },
@@ -98,7 +150,7 @@ export default function App() {
     themeOptions: { flexDirection: 'row', gap: 12 },
     themeOption: { flex: 1, backgroundColor: theme.surface, borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: 'transparent' },
     themeOptionActive: { borderColor: '#667eea', backgroundColor: '#667eea20' },
-    themeIcon: { fontSize: 32, marginBottom: 8 },
+    themeIcon: { marginBottom: 8 },
     themeText: { fontSize: 14, color: theme.textSecondary, fontWeight: '600' },
     themeTextActive: { color: theme.text },
     emptyText: { fontSize: 16, color: theme.textSecondary, textAlign: 'center', marginVertical: 40 },
@@ -106,7 +158,7 @@ export default function App() {
     statsRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
     statCard: { flex: 1, borderRadius: 10, overflow: 'hidden' },
     statGradient: { padding: 10, alignItems: 'center' },
-    statIcon: { fontSize: 20, marginBottom: 4 },
+    statIcon: { marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
     statValue: { fontSize: 18, fontWeight: '700', color: isDark ? '#fff' : '#1a1a1a', marginBottom: 2 },
     statLabel: { color: theme.textSecondary, fontSize: 10, textAlign: 'center' },
     logoutButton: { backgroundColor: '#f87171', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 20 },
@@ -134,7 +186,7 @@ export default function App() {
       paddingVertical: 60, 
       paddingHorizontal: 32 
     },
-    emptyIcon: { fontSize: 64, marginBottom: 16 },
+    emptyIcon: { marginBottom: 16, alignItems: 'center', justifyContent: 'center' },
     emptyTitle: { 
       fontSize: 24, 
       fontWeight: '700', 
@@ -165,6 +217,7 @@ export default function App() {
   
   // Story Data State
   const [stories, setStories] = useState<any[]>([]);
+  const [favorites, setFavorites] = useState<any[]>([]);
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<'all' | 'en' | 'hi'>('all');
   const [categories, setCategories] = useState<any[]>([]);
@@ -179,14 +232,9 @@ export default function App() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [loadingCategory, setLoadingCategory] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(false);
-
-  // Audio State
- 
-  // const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const player = useAudioPlayer(selectedStory?.audioUrl || '');
-  // const [position, setPosition] = useState<number>(0);
-  // const [duration, setDuration] = useState<number>(0);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(false);
 
   // --- Effects ---
 
@@ -254,12 +302,12 @@ export default function App() {
 
   useEffect(() => {
     if (activeTab === 'profile' && user) {
-      // Always load stats when entering profile tab to get latest data
-      if (profileTab === 'stats') {
-        loadUserStats(true);
-      }
+      // Load all profile data once when first entering profile
+      if (!userStats) loadUserStats(false);
+      if (userHistory.length === 0) loadUserHistory(false);
+      if (userProgress.length === 0) loadUserProgress(false);
     }
-  }, [activeTab, user, profileTab]);
+  }, [activeTab, user]);
 
   const loadUserStats = async (forceRefresh = false) => {
     // Skip if already loaded and not forcing refresh
@@ -269,7 +317,7 @@ export default function App() {
     }
     
     console.log('Loading stats, forceRefresh:', forceRefresh);
-    setLoadingProfile(true);
+    setLoadingStats(true);
     try {
       const response = await ApiService.getStats();
       console.log('Stats API response:', JSON.stringify(response, null, 2));
@@ -281,7 +329,7 @@ export default function App() {
       console.error('Failed to load stats:', error);
       setUserStats(null); // Reset on error
     } finally {
-      setLoadingProfile(false);
+      setLoadingStats(false);
       console.log('Stats loading complete');
     }
   };
@@ -292,7 +340,7 @@ export default function App() {
       console.log('Using cached history');
       return;
     }
-    setLoadingProfile(true);
+    setLoadingHistory(true);
     try {
       const response = await ApiService.getHistory();
       console.log('History response:', response);
@@ -300,24 +348,29 @@ export default function App() {
     } catch (error) {
       console.error('Failed to load history:', error);
     } finally {
-      setLoadingProfile(false);
+      setLoadingHistory(false);
     }
   };
 
   const loadUserProgress = async (forceRefresh = false) => {
     // Skip if already loaded and not forcing refresh
     if (!forceRefresh && userProgress.length > 0) {
-      console.log('Using cached progress');
+      console.log('Using cached progress, count:', userProgress.length);
       return;
     }
-    setLoadingProfile(true);
+    
+    console.log('Loading progress, forceRefresh:', forceRefresh, 'current length:', userProgress.length);
+    setLoadingProgress(true);
     try {
       const response = await axios.get(`${API_URL}/user/progress`);
-      setUserProgress(response.data.progress || []);
+      const progressData = response.data.progress || [];
+      console.log('Progress API returned:', progressData.length, 'items');
+      setUserProgress(progressData);
     } catch (error) {
       console.error('Failed to load progress:', error);
+      setUserProgress([]); // Set empty array on error
     } finally {
-      setLoadingProfile(false);
+      setLoadingProgress(false);
     }
   };
 
@@ -557,11 +610,45 @@ export default function App() {
 
   // --- Main Render Logic ---
 
+  // Detail Screen
+  if (screen === 'detail' && selectedStory) {
+    return (
+      <>
+        <StoryDetailScreen 
+          story={selectedStory} 
+          onBack={async () => {
+            // Force refresh stories to get updated ratings/plays
+            await loadStories(1, true);
+            setScreen('home');
+          }}
+          onFavoriteToggle={(storyId: string, isFavorite: boolean) => {
+            if (isFavorite) {
+              // Add to favorites if not already there
+              if (!favorites.find((f: any) => (f._id || f.id) === storyId)) {
+                setFavorites([...favorites, selectedStory]);
+              }
+            } else {
+              // Remove from favorites
+              setFavorites(favorites.filter((f: any) => (f._id || f.id) !== storyId));
+            }
+          }}
+        />
+        <FloatingAudioPlayer key={`audio-player-${themeMode}`} />
+      <Toast 
+        message={toastMessage} 
+        visible={toastVisible} 
+        onHide={() => setLocalToastVisible(false)} 
+      />
+      </>
+    );
+  }
+
   if (screen === 'home') {
     return (
+      <>
       <View style={[styles.homeContainer, { backgroundColor: theme.background }]}>
         <View style={styles.header}>
-          <Logo size={40} variant="icon" />
+          <Logo size={35} variant="icon" />
           <Text style={styles.headerTitle}>StoryByte</Text>
         </View>
 
@@ -627,7 +714,10 @@ export default function App() {
                           <Text style={styles.premiumDesc} numberOfLines={2}>{story.description}</Text>
                           <View style={styles.cardFooter}>
                             <View style={styles.statGroup}>
-                              <Text style={styles.statText}>⭐ {story.averageRating?.toFixed(1) || '0.0'}</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <StarIcon color="#f59e0b" size={14} filled />
+                                <Text style={styles.statText}>{story.averageRating?.toFixed(1) || '0.0'}</Text>
+                              </View>
                               <Text style={[styles.statText, { marginLeft: 12 }]}>▶ {story.plays || 0}</Text>
                             </View>
                             <Text style={[styles.readMore, { color: cardColor }]}>Listen Now →</Text>
@@ -652,11 +742,15 @@ export default function App() {
                 <Text style={styles.sectionTitle}>{selectedGenre}</Text>
                 {categories.length === 0 ? (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>✨</Text>
+                    <View style={styles.emptyIcon}>
+                      <Svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#f59e0b"/>
+                      </Svg>
+                    </View>
                     <Text style={styles.emptyTitle}>Coming Soon!</Text>
                     <Text style={styles.emptyMessage}>
                       We're crafting amazing {selectedGenre.toLowerCase()} stories for you.{'\n'}
-                      Stay tuned for something magical! 🎧
+                      Stay tuned for something magical!
                     </Text>
                   </View>
                 ) : (
@@ -721,14 +815,35 @@ export default function App() {
           </ScrollView>
           )
         ) : activeTab === 'favorites' ? (
-          <FavoritesScreen navigation={{ navigate: (screen: string, params: any) => {
-            if (screen === 'StoryDetail') {
-              setSelectedStory(params.story);
-              setScreen('detail');
-            }
-          }}} />
+          <FavoritesScreen 
+            favorites={favorites}
+            setFavorites={setFavorites}
+            navigation={{ navigate: (screen: string, params: any) => {
+              if (screen === 'StoryDetail') {
+                setSelectedStory(params.story);
+                setScreen('detail');
+              }
+            }}} 
+          />
         ) : activeTab === 'profile' ? (
-          <ScrollView contentContainerStyle={styles.profileContent}>
+          <ScrollView 
+            contentContainerStyle={styles.profileContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={
+                  profileTab === 'stats' ? loadingStats :
+                  profileTab === 'history' ? loadingHistory :
+                  profileTab === 'progress' ? loadingProgress : false
+                }
+                onRefresh={() => {
+                  if (profileTab === 'stats') loadUserStats(true);
+                  else if (profileTab === 'history') loadUserHistory(true);
+                  else if (profileTab === 'progress') loadUserProgress(true);
+                }}
+                tintColor={theme.text}
+              />
+            }
+          >
             <View style={styles.profileHeader}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'U'}</Text>
@@ -744,9 +859,6 @@ export default function App() {
                   style={[styles.profileTab, profileTab === tab && styles.profileTabActive]}
                   onPress={() => {
                     setProfileTab(tab as any);
-                    if (tab === 'stats') loadUserStats(true);
-                    if (tab === 'history') loadUserHistory(true);
-                    if (tab === 'progress') loadUserProgress(true);
                   }}
                 >
                   <Text style={[styles.profileTabText, profileTab === tab && styles.profileTabTextActive]}>
@@ -756,13 +868,12 @@ export default function App() {
               ))}
             </View>
 
-            {loadingProfile ? (
-              <Loader message={
-                profileTab === 'stats' ? 'Loading stats...' :
-                profileTab === 'history' ? 'Loading history...' :
-                profileTab === 'progress' ? 'Loading progress...' :
-                'Loading...'
-              } />
+            {loadingStats && profileTab === 'stats' ? (
+              <Loader message="Loading stats..." />
+            ) : loadingHistory && profileTab === 'history' ? (
+              <Loader message="Loading history..." />
+            ) : loadingProgress && profileTab === 'progress' ? (
+              <Loader message="Loading progress..." />
             ) : profileTab === 'stats' && userStats ? (
               <View style={styles.statsContainer}>
                 <View style={styles.statsRow}>
@@ -773,7 +884,9 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>⏱️</Text>
+                      <View style={styles.statIcon}>
+                        <ClockIcon color="#667eea" size={24} />
+                      </View>
                       <Text style={styles.statValue}>{Math.floor((userStats.totalListeningTime || 0) / 60)}h {(userStats.totalListeningTime || 0) % 60}m</Text>
                       <Text style={styles.statLabel}>Listen Time</Text>
                     </LinearGradient>
@@ -785,7 +898,12 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>📚</Text>
+                      <View style={styles.statIcon}>
+                        <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <Path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <Path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </Svg>
+                      </View>
                       <Text style={styles.statValue}>{userStats.totalStories || 0}</Text>
                       <Text style={styles.statLabel}>Stories</Text>
                     </LinearGradient>
@@ -799,7 +917,9 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>❤️</Text>
+                      <View style={styles.statIcon}>
+                        <HeartIcon color="#8b5cf6" size={24} filled />
+                      </View>
                       <Text style={styles.statValue}>{userStats.favoriteStories || 0}</Text>
                       <Text style={styles.statLabel}>Favorites</Text>
                     </LinearGradient>
@@ -811,7 +931,9 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>✅</Text>
+                      <View style={styles.statIcon}>
+                        <CheckCircleIcon color="#10b981" size={24} />
+                      </View>
                       <Text style={styles.statValue}>{userStats.completedStories || 0}</Text>
                       <Text style={styles.statLabel}>Completed</Text>
                     </LinearGradient>
@@ -825,7 +947,9 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>📖</Text>
+                      <View style={styles.statIcon}>
+                        <BookOpenIcon color="#f59e0b" size={24} />
+                      </View>
                       <Text style={styles.statValue}>{userStats.inProgressStories || 0}</Text>
                       <Text style={styles.statLabel}>In Progress</Text>
                     </LinearGradient>
@@ -837,7 +961,9 @@ export default function App() {
                       end={{ x: 1, y: 1 }}
                       style={styles.statGradient}
                     >
-                      <Text style={styles.statIcon}>▶️</Text>
+                      <View style={styles.statIcon}>
+                        <HeadphonesIcon color="#10b981" size={24} />
+                      </View>
                       <Text style={styles.statValue}>{userStats.totalPlays || 0}</Text>
                       <Text style={styles.statLabel}>Total Plays</Text>
                     </LinearGradient>
@@ -860,7 +986,9 @@ export default function App() {
                         style={styles.historyGradient}
                       >
                         <View style={styles.historyHeader}>
-                          <Text style={styles.historyIcon}>{item.completed ? '✅' : '▶️'}</Text>
+                          <View style={styles.historyIcon}>
+                            {item.completed ? <CheckCircleIcon color="#10b981" size={20} /> : <HeadphonesIcon color="#667eea" size={20} />}
+                          </View>
                           <View style={styles.historyInfo}>
                             <Text style={styles.historyStatus}>
                               {item.completed ? 'Completed' : 'Played'}
@@ -906,9 +1034,15 @@ export default function App() {
                       style={[styles.themeOption, themeMode === mode && styles.themeOptionActive]}
                       onPress={() => changeTheme(mode)}
                     >
-                      <Text style={styles.themeIcon}>
-                        {mode === 'light' ? '☀️' : mode === 'dark' ? '🌙' : '⚙️'}
-                      </Text>
+                      <View style={styles.themeIcon}>
+                        {mode === 'light' ? (
+                          <SunIcon color={themeMode === mode ? '#667eea' : theme.textSecondary} />
+                        ) : mode === 'dark' ? (
+                          <MoonIcon color={themeMode === mode ? '#667eea' : theme.textSecondary} />
+                        ) : (
+                          <SystemIcon color={themeMode === mode ? '#667eea' : theme.textSecondary} />
+                        )}
+                      </View>
                       <Text style={[styles.themeText, themeMode === mode && styles.themeTextActive]}>
                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
                       </Text>
@@ -928,100 +1062,40 @@ export default function App() {
 
         {/* Tab Bar Navigation */}
         <View style={styles.tabBar}>
-          {['home', 'genres', 'favorites', 'profile'].map((tab) => (
-            <TouchableOpacity key={tab} style={styles.tab} onPress={() => setActiveTab(tab)}>
-              <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
-                {tab === 'home' ? '🏠' : tab === 'genres' ? '🎭' : tab === 'favorites' ? '❤️' : '👤'}
-              </Text>
-              <Text style={[styles.tabSubLabel, activeTab === tab && styles.tabLabelActive]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {['home', 'genres', 'favorites', 'profile'].map((tab) => {
+            const isActive = activeTab === tab;
+            const iconColor = isActive ? '#667eea' : theme.textSecondary;
+            
+            return (
+              <TouchableOpacity key={tab} style={styles.tab} onPress={() => setActiveTab(tab)}>
+                {tab === 'home' ? (
+                  <HomeIcon color={iconColor} />
+                ) : tab === 'profile' ? (
+                  <ProfileIcon color={iconColor} />
+                ) : tab === 'genres' ? (
+                  <GenresIcon color={iconColor} />
+                ) : (
+                  <FavoritesIcon color={iconColor} />
+                )}
+                <Text style={[styles.tabSubLabel, isActive && styles.tabLabelActive]}>
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
         <StatusBar style="light" />
       </View>
+      <FloatingAudioPlayer />
+      <Toast 
+        message={toastMessage} 
+        visible={toastVisible} 
+        onHide={() => setLocalToastVisible(false)} 
+      />
+      </>
     );
   }
- const pauseAudio = () => {
-  try {
-    console.log('pauseAudio called, player:', player);
-    if (player) {
-      player.pause();
-      setIsPlaying(false);
-      console.log('Audio paused');
-    }
-  } catch (error) {
-    console.error("Error pausing audio:", error);
-  }
-};
 
-const playAudio = () => {
-  try {
-    console.log('playAudio called, player:', player);
-    if (!player) {
-      Alert.alert("Error", "Audio player not initialized");
-      return;
-    }
-
-    if (!selectedStory?.audioUrl) {
-      Alert.alert("Error", "No audio available");
-      return;
-    }
-
-    // Start playback
-    player.play();
-    setIsPlaying(true);
-
-    // Track play via API when starting audio
-    // We don't await this to avoid delaying the audio start
-    ApiService.trackPlay(
-      selectedStory._id || selectedStory.id, 
-      0, 
-      0, 
-      false
-    ).catch(error => console.log('Failed to track play:', error));
-
-  } catch (error) {
-    console.error("Error playing audio:", error);
-    Alert.alert("Error", "Could not play audio");
-  }
-};
-if (screen === 'detail' && selectedStory) {
-  console.log('Rendering StoryDetailScreen with:', {
-    story: selectedStory.title,
-    player: player ? 'exists' : 'null',
-    playing: player?.playing
-  });
-  return (
-    <StoryDetailScreen 
-      story={selectedStory} 
-      onBack={async () => {
-        // Safe check: pause audio before navigating back
-        if (player?.playing) {
-          player.pause();
-        }
-        // Force refresh stories to get updated ratings/plays
-        await loadStories(1, true);
-        setScreen('home');
-      }} 
-      // Use the player's built-in state and your new functions
-      onPlayPause={() => {
-        console.log('onPlayPause clicked, currently playing:', isPlaying);
-        if (isPlaying) {
-          pauseAudio();
-        } else {
-          playAudio();
-        }
-      }}
-      isPlaying={isPlaying}
-      
-      // Convert player's seconds to milliseconds for your UI
-      position={(player?.currentTime || 0) * 1000} 
-      duration={(player?.duration || 0) * 1000} 
-    />
-  );
-}
   // Show loading screen while checking auth
   if (screen === 'loading') return <Loader message="Loading..." />;
   
@@ -1053,4 +1127,14 @@ if (screen === 'detail' && selectedStory) {
   );
 
   return null;
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AudioPlayerProvider>
+        <AppContent />
+      </AudioPlayerProvider>
+    </ThemeProvider>
+  );
 }

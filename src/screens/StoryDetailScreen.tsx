@@ -3,13 +3,23 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextIn
 import { LinearGradient } from 'expo-linear-gradient';
 import ApiService from '../services/api';
 import { Loader } from '../components';
+import { HeartIcon, StarIcon } from '../components/Icons';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
+import { useAudioPlayer } from '../context/AudioPlayerContext';
 
 export const StoryDetailScreen = ({ 
-  story, onBack, onPlayPause, isPlaying, position, duration 
+  story, onBack, onFavoriteToggle
 }: any) => {
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
+  const { loadStory, currentStory } = useAudioPlayer();
+
+  // Load story into player when screen opens
+  useEffect(() => {
+    if (story && (!currentStory || (currentStory._id || currentStory.id) !== (story._id || story.id))) {
+      loadStory(story);
+    }
+  }, [story]);
 
   // Safety check
   if (!story) {
@@ -39,49 +49,34 @@ export const StoryDetailScreen = ({
     title: { fontSize: 32, fontWeight: '800', color: theme.text, marginBottom: 8, flex: 1 },
     author: { color: theme.textSecondary, marginTop: 5, fontSize: 16 },
     content: { padding: 24, backgroundColor: theme.background, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30, paddingBottom: 40 },
-    playerCard: { borderRadius: 20, marginBottom: 20, overflow: 'hidden' },
-    playerGradient: { padding: 12 },
-    progressBarBg: { height: 3, backgroundColor: theme.border, borderRadius: 2, overflow: 'hidden' },
-    progressFill: { height: '100%', backgroundColor: '#667eea' },
-    timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-    timeLabel: { color: theme.textSecondary, fontSize: 11 },
-    playBtn: { 
-      marginTop: 8, 
-      borderRadius: 12, 
+    playButton: { 
+      marginBottom: 20, 
+      borderRadius: 16, 
       overflow: 'hidden',
       shadowColor: '#667eea',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 10
     },
-    playGradient: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+    playButtonGradient: {
+      paddingVertical: 18,
+      paddingHorizontal: 24,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'center',
-      borderRadius: 12,
-      gap: 8
+      gap: 12
     },
-    playIconContainer: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-    playIcon: { 
+    playButtonIcon: { 
       color: '#fff', 
-      fontSize: 14,
+      fontSize: 20,
       fontWeight: '900'
     },
-    playText: { 
+    playButtonText: { 
       color: '#fff', 
       fontWeight: '700', 
-      fontSize: 14,
-      letterSpacing: 0.8
+      fontSize: 16,
+      letterSpacing: 1
     },
     statsRow: { borderRadius: 15, marginBottom: 20, overflow: 'hidden' },
     statsGradient: { flexDirection: 'row', justifyContent: 'space-around', padding: 12 },
@@ -90,9 +85,10 @@ export const StoryDetailScreen = ({
     statLabel: { color: theme.textSecondary, fontSize: 11 },
     sectionTitle: { color: theme.text, fontSize: 20, fontWeight: '700', marginBottom: 12, marginTop: 8 },
     description: { color: theme.textSecondary, lineHeight: 24, fontSize: 15, marginBottom: 20 },
-    pageContainer: { borderRadius: 15, marginBottom: 20, minHeight: 450, overflow: 'hidden' },
-    pageGradient: { padding: 20 },
-    textContent: { color: theme.text, lineHeight: 28, fontSize: 16, textAlign: 'justify', height: 360 },
+    pageContainer: { borderRadius: 15, marginBottom: 20, height: 300, overflow: 'hidden' },
+    pageGradient: { flex: 1, padding: 20 },
+    textContentScroll: { flex: 1 },
+    textContent: { color: theme.text, lineHeight: 28, fontSize: 16, textAlign: 'justify' },
     pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
     pageBtn: { backgroundColor: '#667eea', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
     pageBtnDisabled: { backgroundColor: theme.border, opacity: 0.5 },
@@ -187,7 +183,6 @@ export const StoryDetailScreen = ({
   const [hasRated, setHasRated] = useState(false);
   const [storyData, setStoryData] = useState(story);
   const [isFavorited, setIsFavorited] = useState(false);
-  const progress = duration > 0 ? (position / duration) * 100 : 0;
 
   useEffect(() => {
     console.log('StoryDetailScreen mounted with story:', story);
@@ -216,6 +211,12 @@ export const StoryDetailScreen = ({
       const response = await ApiService.toggleFavorite(story._id || story.id);
       console.log('Toggle favorite response:', response);
       setIsFavorited(response.favorited);
+      
+      // Notify parent component
+      if (onFavoriteToggle) {
+        onFavoriteToggle(story._id || story.id, response.favorited);
+      }
+      
       Alert.alert('Success', response.favorited ? 'Added to favorites!' : 'Removed from favorites');
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
@@ -271,12 +272,6 @@ export const StoryDetailScreen = ({
     return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
   };
 
-  const formatTime = (millis: number) => {
-    const min = Math.floor(millis / 60000);
-    const sec = Math.floor((millis % 60000) / 1000);
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-  };
-
   // Split text into pages (roughly 500 characters per page, break at word boundaries)
   const splitIntoPages = (text: string) => {
     if (!text) return [];
@@ -313,7 +308,9 @@ export const StoryDetailScreen = ({
     
     setSubmitting(true);
     try {
-      await ApiService.rateStory(story._id || story.id, finalRating, review || undefined);
+      console.log('📝 Submitting rating:', { storyId: story._id || story.id, rating: finalRating, review });
+      const response = await ApiService.rateStory(story._id || story.id, finalRating, review || undefined);
+      console.log('✅ Rating submitted:', response);
       
       Alert.alert('Success', 'Thank you for your rating!');
       // Refresh reviews and user rating
@@ -322,6 +319,8 @@ export const StoryDetailScreen = ({
       setRating(0);
       setReview('');
     } catch (error: any) {
+      console.error('❌ Rating submission error:', error);
+      console.error('Error response:', error.response?.data);
       Alert.alert('Error', error.response?.data?.error || 'Failed to submit rating');
     } finally {
       setSubmitting(false);
@@ -342,46 +341,13 @@ export const StoryDetailScreen = ({
           <View style={styles.headerRow}>
             <Text style={styles.title}>{story.title}</Text>
             <TouchableOpacity onPress={handleToggleFavorite} style={styles.favoriteBtn}>
-              <Text style={{ fontSize: 28, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
-                {isFavorited ? '❤️' : '🤍'}
-              </Text>
+              <HeartIcon color={isFavorited ? '#ec4899' : '#fff'} size={28} filled={isFavorited} />
             </TouchableOpacity>
           </View>
           <Text style={styles.author}>by {story.author || 'StoryByte'}</Text>
         </LinearGradient>
 
         <View style={styles.content}>
-          <View style={styles.playerCard}>
-            <LinearGradient
-              colors={['#667eea30', '#764ba230']}
-              start={{ x: 0, y: 0 }} 
-              end={{ x: 1, y: 1 }}
-              style={styles.playerGradient}
-            >
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressFill, { width: `${progress}%` }]} />
-              </View>
-              <View style={styles.timeRow}>
-                <Text style={styles.timeLabel}>{formatTime(position)}</Text>
-                <Text style={styles.timeLabel}>{formatTime(duration)}</Text>
-              </View>
-
-              <TouchableOpacity style={styles.playBtn} onPress={onPlayPause} activeOpacity={0.8}>
-                <LinearGradient 
-                  colors={isPlaying ? ['#ec4899', '#8b5cf6'] : ['#667eea', '#764ba2']} 
-                  start={{ x: 0, y: 0 }} 
-                  end={{ x: 1, y: 1 }}
-                  style={styles.playGradient}
-                >
-                  <View style={styles.playIconContainer}>
-                    <Text style={styles.playIcon}>{isPlaying ? '⏸' : '▶'}</Text>
-                  </View>
-                  <Text style={styles.playText}>{isPlaying ? 'PAUSE' : 'LISTEN NOW'}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
-
           <View style={styles.statsRow}>
             <LinearGradient
               colors={isDark ? ['#10b98130', 'rgba(255,255,255,0.05)'] : ['#10b98130', 'rgba(0,0,0,0.03)']}
@@ -390,7 +356,10 @@ export const StoryDetailScreen = ({
               style={styles.statsGradient}
             >
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>⭐ {storyData.averageRating?.toFixed(1) || '0.0'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <StarIcon color="#f59e0b" size={16} filled />
+                <Text style={styles.statValue}>{storyData.averageRating?.toFixed(1) || '0.0'}</Text>
+              </View>
               <Text style={styles.statLabel}>Rating</Text>
             </View>
             <View style={styles.statItem}>
@@ -417,27 +386,13 @@ export const StoryDetailScreen = ({
                   end={{ x: 1, y: 1 }}
                   style={styles.pageGradient}
                 >
-                  <Text style={styles.textContent}>{pages[currentPage]}</Text>
-                  
-                  <View style={styles.pagination}>
-                    <TouchableOpacity 
-                      style={[styles.pageBtn, currentPage === 0 && styles.pageBtnDisabled]}
-                      onPress={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                      disabled={currentPage === 0}
-                    >
-                      <Text style={styles.pageBtnText}>← Previous</Text>
-                    </TouchableOpacity>
-                    
-                    <Text style={styles.pageInfo}>Page {currentPage + 1} of {pages.length}</Text>
-                    
-                    <TouchableOpacity 
-                      style={[styles.pageBtn, currentPage === pages.length - 1 && styles.pageBtnDisabled]}
-                      onPress={() => setCurrentPage(Math.min(pages.length - 1, currentPage + 1))}
-                      disabled={currentPage === pages.length - 1}
-                    >
-                      <Text style={styles.pageBtnText}>Next →</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <ScrollView 
+                    style={styles.textContentScroll}
+                    showsVerticalScrollIndicator={true}
+                    nestedScrollEnabled={true}
+                  >
+                    <Text style={styles.textContent}>{pages.join('\n\n')}</Text>
+                  </ScrollView>
                 </LinearGradient>
               </View>
             </>
@@ -503,8 +458,8 @@ export const StoryDetailScreen = ({
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                  <Text style={styles.star}>
-                    {star <= (rating || userRating || 0) ? '⭐' : '☆'}
+                  <Text style={[styles.star, { color: star <= (rating || userRating || 0) ? '#f59e0b' : (isDark ? '#666' : '#ddd') }]}>
+                    {star <= (rating || userRating || 0) ? '★' : '★'}
                   </Text>
                 </TouchableOpacity>
               ))}

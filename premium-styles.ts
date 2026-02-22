@@ -51,6 +51,7 @@ export const premiumStyles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
     marginBottom: 8,
+    marginTop: 12,
   },
   appTagline: {
     fontSize: 16,
@@ -95,7 +96,8 @@ export const premiumStyles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    height: 48,
   },
   inputIcon: {
     fontSize: 20,
@@ -103,14 +105,13 @@ export const premiumStyles = StyleSheet.create({
   },
   glassInput: {
     flex: 1,
-    height: 56,
     fontSize: 16,
     color: '#ffffff',
   },
   primaryButton: {
     backgroundColor: '#667eea',
     borderRadius: 16,
-    height: 56,
+    height: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,7 +134,7 @@ export const premiumStyles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
-    height: 56,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -184,7 +185,7 @@ export const premiumStyles = StyleSheet.create({
   googleButton: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    height: 56,
+    height: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

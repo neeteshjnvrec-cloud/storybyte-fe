@@ -1,10 +1,18 @@
 import { useColorScheme } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export const useTheme = () => {
+interface ThemeContextType {
+  themeMode: ThemeMode;
+  changeTheme: (mode: ThemeMode) => Promise<void>;
+  isDark: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
 
@@ -34,7 +42,19 @@ export const useTheme = () => {
     ? systemColorScheme === 'dark' 
     : themeMode === 'dark';
 
-  return { themeMode, changeTheme, isDark };
+  return (
+    <ThemeContext.Provider value={{ themeMode, changeTheme, isDark }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
 };
 
 export const lightTheme = {
