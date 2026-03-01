@@ -1,16 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
+import { trackScreenView, trackLogout } from '../utils/analytics';
 
 export const ProfileScreen = () => {
   const { user, logout } = useAuth();
 
+  useEffect(() => {
+    trackScreenView('Profile');
+  }, []);
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: logout, style: 'destructive' },
+      { 
+        text: 'Logout', 
+        onPress: () => {
+          trackLogout();
+          logout();
+        }, 
+        style: 'destructive' 
+      },
     ]);
   };
 

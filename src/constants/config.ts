@@ -2,12 +2,15 @@
 export const API_CONFIG = {
   // BASE_URL: 'http://localhost:3000/api/v1', // Local testing
   BASE_URL: 'https://storybytes.neeteshjnvrec.workers.dev/api/v1', // Production
+  BACKEND_URL: 'https://storybytes.neeteshjnvrec.workers.dev', // For legal pages
+
+  // BACKEND_URL: 'http://localhost:3000', // Local testing
   TIMEOUT: 60000,
 };
 
 // App Configuration
 export const APP_CONFIG = {
-  NAME: 'Story Teller',
+  NAME: 'StoryByte',
   VERSION: '1.0.0',
   GOOGLE_CLIENT_ID: '147652281278-kdmfmk39vadq28fvc6lu6bffd0jjcuqr.apps.googleusercontent.com',
   GOOGLE_ANDROID_CLIENT_ID: '147652281278-qiicq6ubmbfa8rhkjs8uoucrpbdpq1q2.apps.googleusercontent.com', // TODO: Add Android Client ID from Google Cloud Console

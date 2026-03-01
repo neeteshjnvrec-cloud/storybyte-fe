@@ -60,7 +60,7 @@ export const premiumStyles = StyleSheet.create({
   glassCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     shadowColor: '#000',
@@ -69,18 +69,18 @@ export const premiumStyles = StyleSheet.create({
     shadowRadius: 20,
   },
   authTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   authSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#8b9dc3',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   inputLabel: {
     fontSize: 14,

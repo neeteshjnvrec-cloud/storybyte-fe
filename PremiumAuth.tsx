@@ -3,10 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator,
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path } from 'react-native-svg';
+import * as WebBrowser from 'expo-web-browser';
 import { premiumStyles as styles } from './premium-styles';
 import { Logo } from './src/components';
 import { LockIcon, UserIcon, EmailIcon } from './src/components/Icons';
 import { useTheme, lightTheme, darkTheme } from './src/hooks/useTheme';
+import { API_CONFIG } from './src/constants/config';
 
 const EyeIcon = ({ color = '#9ca3af' }: { color?: string }) => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -47,7 +49,7 @@ export function LoginScreen({ email, setEmail, password, setPassword, loading, o
   
   return (
     <LinearGradient colors={gradientColors} style={{ flex: 1 }}>
-      <View style={{ paddingTop: 100, paddingHorizontal: 24, paddingBottom: 16 }}>
+      <View style={{ paddingTop: 40, paddingHorizontal: 24, paddingBottom: 16 }}>
         <View style={styles.logoContainer}>
           <Logo size={100} variant="full" showText={false} />
           <Text style={[styles.appTitle, { color: textColor }]}>StoryByte</Text>
@@ -126,6 +128,19 @@ export function LoginScreen({ email, setEmail, password, setPassword, loading, o
             <TouchableOpacity style={[styles.secondaryButton, { backgroundColor: isDark ? "#667eea" : "#5568d3", borderColor: "transparent" }]} onPress={onSignup}>
               <Text style={[styles.secondaryButtonText, { color: "#ffffff" }]}>Create New Account</Text>
             </TouchableOpacity>
+
+            <View style={{ marginTop: 20, alignItems: 'center' }}>
+              <Text style={{ color: secondaryTextColor, fontSize: 12 }}>
+                By continuing, you agree to our{' '}
+                <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/terms`)}>
+                  Terms
+                </Text>
+                {' '}and{' '}
+                <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/privacy`)}>
+                  Privacy Policy
+                </Text>
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -158,7 +173,7 @@ export function SignupScreen({ name, setName, email, setEmail, password, setPass
   
   return (
     <LinearGradient colors={gradientColors} style={{ flex: 1 }}>
-      <View style={{ paddingTop: 100, paddingHorizontal: 24, paddingBottom: 16 }}>
+      <View style={{ paddingTop: 40, paddingHorizontal: 24, paddingBottom: 16 }}>
         <View style={styles.logoContainer}>
           <Logo size={100} variant="full" showText={false} />
           <Text style={[styles.appTitle, { color: textColor }]}>StoryByte</Text>
@@ -265,6 +280,19 @@ export function SignupScreen({ name, setName, email, setEmail, password, setPass
             <TouchableOpacity style={[styles.secondaryButton, { backgroundColor: isDark ? "#667eea" : "#5568d3", borderColor: "transparent" }]} onPress={onLogin}>
               <Text style={[styles.secondaryButtonText, { color: "#ffffff" }]}>Already have an account? Sign In</Text>
             </TouchableOpacity>
+
+            <View style={{ marginTop: 20, alignItems: 'center' }}>
+              <Text style={{ color: secondaryTextColor, fontSize: 12, textAlign: 'center' }}>
+                By signing up, you agree to our{' '}
+                <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/terms`)}>
+                  Terms
+                </Text>
+                {' '}and{' '}
+                <Text style={{ textDecorationLine: 'underline' }} onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/privacy`)}>
+                  Privacy Policy
+                </Text>
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

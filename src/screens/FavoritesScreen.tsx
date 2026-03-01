@@ -8,12 +8,17 @@ import { Story } from '../types';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
 import { Loader } from '../components';
+import { trackScreenView } from '../utils/analytics';
 
 export const FavoritesScreen = ({ navigation, favorites, setFavorites }: any) => {
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
   const [loading, setLoading] = useState(favorites.length === 0);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    trackScreenView('Favorites');
+  }, []);
 
   const styles = StyleSheet.create({
     container: { 

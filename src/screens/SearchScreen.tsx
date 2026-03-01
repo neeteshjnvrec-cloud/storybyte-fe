@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,14 +6,20 @@ import { SearchIcon, StarIcon } from '../components/Icons';
 import ApiService from '../services/api';
 import { Story } from '../types';
 import { APP_COLORS, APP_SPACING, APP_TYPOGRAPHY, APP_BORDER_RADIUS } from '../constants/appTheme';
+import { trackScreenView, trackSearch } from '../utils/analytics';
 
 export const SearchScreen = ({ navigation }: any) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Story[]>([]);
 
+  useEffect(() => {
+    trackScreenView('Search');
+  }, []);
+
   const handleSearch = async (text: string) => {
     setQuery(text);
     if (text.length > 2) {
+      trackSearch(text);
       try {
         const response = await ApiService.searchStories(text);
         setResults(response.stories);

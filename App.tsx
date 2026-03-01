@@ -4,6 +4,7 @@ import {
   View, Text, StyleSheet, Alert, ActivityIndicator, 
   ScrollView, TouchableOpacity, Platform, RefreshControl 
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import axios from 'axios';
@@ -22,6 +23,7 @@ import { API_CONFIG } from './src/constants/config';
 import { StoryDetailScreen } from './src/screens/StoryDetailScreen';
 import { useTheme, ThemeProvider, lightTheme, darkTheme } from './src/hooks/useTheme';
 import { AudioPlayerProvider, useAudioPlayer } from './src/context/AudioPlayerContext';
+import { trackAppOpened } from './src/utils/analytics';
 
 // --- Types ---
 interface User {
@@ -153,6 +155,9 @@ function AppContent() {
     themeIcon: { marginBottom: 8 },
     themeText: { fontSize: 14, color: theme.textSecondary, fontWeight: '600' },
     themeTextActive: { color: theme.text },
+    legalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 10, padding: 16, marginTop: 10 },
+    legalItemText: { fontSize: 15, color: theme.text, fontWeight: '500' },
+    legalItemArrow: { fontSize: 24, color: theme.textSecondary },
     emptyText: { fontSize: 16, color: theme.textSecondary, textAlign: 'center', marginVertical: 40 },
     statsContainer: { marginBottom: 24 },
     statsRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
@@ -240,6 +245,7 @@ function AppContent() {
 
   // Check for stored auth token on app start
   useEffect(() => {
+    trackAppOpened();
     checkStoredAuth();
   }, []);
 
@@ -540,9 +546,22 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('@story_teller:auth_token');
-    setUser(null);
-    setScreen('login');
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('@story_teller:auth_token');
+            setUser(null);
+            setScreen('login');
+          }
+        }
+      ]
+    );
   };
 
   const handleForgotPassword = async () => {
@@ -1049,6 +1068,66 @@ function AppContent() {
                     </TouchableOpacity>
                   ))}
                 </View>
+
+                <Text style={[styles.preferenceTitle, { marginTop: 30 }]}>Legal</Text>
+                <TouchableOpacity 
+                  style={styles.legalItem}
+                  onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/about`)}
+                >
+                  <Text style={styles.legalItemText}>About</Text>
+                  <Text style={styles.legalItemArrow}>›</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.legalItem}
+                  onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/privacy`)}
+                >
+                  <Text style={styles.legalItemText}>Privacy Policy</Text>
+                  <Text style={styles.legalItemArrow}>›</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.legalItem}
+                  onPress={() => WebBrowser.openBrowserAsync(`${API_CONFIG.BACKEND_URL}/legal/terms`)}
+                >
+                  <Text style={styles.legalItemText}>Terms & Conditions</Text>
+                  <Text style={styles.legalItemArrow}>›</Text>
+                </TouchableOpacity>
+
+                <Text style={[styles.preferenceTitle, { marginTop: 30 }]}>Account</Text>
+                <TouchableOpacity 
+                  style={[styles.legalItem, { backgroundColor: '#fee' }]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Delete Account',
+                      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { 
+                          text: 'Delete', 
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              const token = await AsyncStorage.getItem('@story_teller:auth_token');
+                              if (!token) {
+                                Alert.alert('Error', 'Not authenticated');
+                                return;
+                              }
+                              await axios.delete(`${API_CONFIG.BASE_URL}/user/account`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                              });
+                              handleLogout();
+                            } catch (error) {
+                              console.error('Delete account error:', error);
+                              Alert.alert('Error', 'Failed to delete account. Please try again.');
+                            }
+                          }
+                        }
+                      ]
+                    );
+                  }}
+                >
+                  <Text style={[styles.legalItemText, { color: '#c00' }]}>Delete Account</Text>
+                  <Text style={styles.legalItemArrow}>›</Text>
+                </TouchableOpacity>
               </View>
             ) : null}
 

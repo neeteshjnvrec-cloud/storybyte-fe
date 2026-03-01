@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ApiService from '../services/api';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { trackScreenView, trackPasswordReset } from '../utils/analytics';
 
 export const ForgotPasswordScreen = ({ navigation }: any) => {
   const [step, setStep] = useState(1);
@@ -10,6 +11,10 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [tempToken, setTempToken] = useState('');
+
+  useEffect(() => {
+    trackScreenView('ForgotPassword');
+  }, []);
 
   const handleSendCode = async () => {
     try {
@@ -34,6 +39,7 @@ export const ForgotPasswordScreen = ({ navigation }: any) => {
   const handleResetPassword = async () => {
     try {
       await ApiService.resetPassword(tempToken, newPassword);
+      trackPasswordReset();
       Alert.alert('Success', 'Password reset successfully', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);

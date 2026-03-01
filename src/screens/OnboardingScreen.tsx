@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { HeadphonesIcon, BookOpenIcon, StarIcon, PhoneIcon, BookmarkIcon, LightningIcon, HeartIcon, TargetIcon, ChartIcon } from '../components/Icons';
 import { Logo } from '../components';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
+import { trackOnboardingCompleted, trackOnboardingSkipped } from '../utils/analytics';
 
 const { width } = Dimensions.get('window');
 
@@ -68,23 +69,25 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     if (currentIndex < slides.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
+      trackOnboardingCompleted();
       onComplete();
     }
   };
 
   const renderSlide = ({ item }: { item: typeof slides[0] }) => (
-    <ScrollView 
-      style={[styles.slide, { width }]}
-      contentContainerStyle={styles.slideContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.logoContainer}>
-        <Logo size={160} variant="icon" showLogo={true} />
-      </View>
+    <View style={[styles.slide, { width }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.slideContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.logoContainer}>
+          <Logo size={160} variant="icon" showLogo={true} />
+        </View>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.description}>{item.description}</Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.description}>{item.description}</Text>
 
         <View style={styles.featuresContainer}>
           {item.features.map((feature, index) => {
@@ -123,6 +126,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         </View>
       </View>
     </ScrollView>
+    </View>
   );
 
   const Paginator = () => (
@@ -157,12 +161,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       colors={[COLORS.gradientStart, COLORS.gradientEnd]}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onComplete} style={styles.skipButton}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={slides}
         renderItem={renderSlide}
@@ -180,7 +178,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         ref={slidesRef}
       />
 
-      <View style={styles.footer}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          onPress={() => {
+            trackOnboardingSkipped();
+            onComplete();
+          }} 
+          style={styles.skipButton}
+        >
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={[styles.footer, currentIndex === slides.length - 1 && styles.footerLastSlide]}>
         <Paginator />
         
         <TouchableOpacity style={styles.continueButton} onPress={scrollTo}>
@@ -211,11 +221,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
     paddingBottom: SPACING.md,
+    zIndex: 999,
+    elevation: 10,
   },
   skipButton: {
     padding: SPACING.sm,
@@ -227,19 +243,21 @@ const styles = StyleSheet.create({
   },
   slide: {
     width,
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
   },
   slideContent: {
-    flexGrow: 1,
-    alignItems: 'center',
     paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.xl,
+    paddingTop: 120,
+    paddingBottom: 200,
   },
   logoContainer: {
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.xs,
+    alignSelf: 'center',
   },
   content: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
     width: '100%',
@@ -250,37 +268,38 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: SPACING.md,
-    lineHeight: 36,
+    lineHeight: 30,
   },
   description: {
     ...TYPOGRAPHY.body,
-    fontSize: 15,
+    fontSize: 14,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
-    lineHeight: 22,
+    marginBottom: SPACING.md,
+    lineHeight: 20,
     paddingHorizontal: SPACING.sm,
   },
   featuresContainer: {
     width: '100%',
     gap: SPACING.sm,
+    marginBottom: SPACING.sm,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+    height: 50,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -291,9 +310,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footer: {
+    position: 'absolute',
+    bottom: 80,
+    left: 0,
+    right: 0,
     paddingHorizontal: SPACING.xl,
-    paddingBottom: 40,
-    gap: SPACING.md,
+    gap: SPACING.sm,
+  },
+  footerLastSlide: {
+    bottom: 20,
   },
   paginatorContainer: {
     flexDirection: 'row',
@@ -310,7 +335,7 @@ const styles = StyleSheet.create({
   continueButton: {
     backgroundColor: COLORS.text,
     borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -327,10 +352,11 @@ const styles = StyleSheet.create({
   exploreButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.md,
+    height: 50,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   exploreButtonText: {
     ...TYPOGRAPHY.body,

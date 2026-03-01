@@ -5,6 +5,7 @@ import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApiService from '../services/api';
 import { transformStoryForPlayer } from '../utils/audioUtils';
+import { trackStoryPlayed, trackStoryPaused, trackStoryCompleted, trackPageChanged, trackPlaybackSpeedChanged, trackVolumeChanged } from '../utils/analytics';
 
 interface Page {
   pageNumber: number;
@@ -252,6 +253,15 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
           await soundRef.current.playAsync();
           setIsPlaying(true);
           
+          // Track story played
+          if (currentStory) {
+            trackStoryPlayed(
+              currentStory._id || currentStory.id || '',
+              currentStory.title,
+              'audio'
+            );
+          }
+          
           // Show toast when user clicks play
           setToastVisible(false); // Reset first
           setTimeout(() => {
@@ -273,6 +283,14 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
           await soundRef.current.pauseAsync();
           setIsPlaying(false);
           await saveProgress();
+          
+          // Track story paused
+          if (currentStory) {
+            trackStoryPaused(
+              currentStory._id || currentStory.id || '',
+              status.positionMillis || 0
+            );
+          }
         }
       }
     } catch (error) {
@@ -327,6 +345,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const setSpeed = async (speed: number) => {
     try {
       setPlaybackSpeed(speed);
+      trackPlaybackSpeedChanged(speed);
       if (soundRef.current) {
         await soundRef.current.setRateAsync(speed, true);
       }
@@ -338,6 +357,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const setVolume = async (vol: number) => {
     try {
       setVolumeState(vol);
+      trackVolumeChanged(vol);
       await AsyncStorage.setItem('audioVolume', vol.toString());
       if (soundRef.current) {
         await soundRef.current.setVolumeAsync(vol);
@@ -351,6 +371,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (isLoading) return; // Don't allow page change while loading
     if (currentStory && pageNumber >= 0 && pageNumber < currentStory.pages.length) {
       setCurrentPage(pageNumber);
+      trackPageChanged(currentStory._id || currentStory.id || '', pageNumber);
       await loadPage(currentStory, pageNumber);
       await saveProgress();
     }

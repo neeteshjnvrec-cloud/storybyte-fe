@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/config';
 import ApiService from '../services/api';
 import { User, AuthResponse } from '../types';
+import { trackLogin, trackSignup } from '../utils/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -61,16 +62,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     const response = await ApiService.login(email, password);
     await saveAuth(response);
+    trackLogin('email');
   };
 
   const signup = async (email: string, password: string, name?: string) => {
     const response = await ApiService.signup(email, password, name);
     await saveAuth(response);
+    trackSignup('email');
   };
 
   const googleSignIn = async (idToken: string) => {
     const response = await ApiService.googleAuth(idToken);
     await saveAuth(response);
+    trackLogin('google');
   };
 
   const logout = async () => {

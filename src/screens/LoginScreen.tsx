@@ -131,12 +131,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.lg,
+  },
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
+    marginTop: -SPACING.xxl,
   },
   title: {
     ...TYPOGRAPHY.h1,

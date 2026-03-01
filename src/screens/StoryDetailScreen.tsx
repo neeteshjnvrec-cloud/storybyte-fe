@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ApiService from '../services/api';
 import { Loader } from '../components';
 import { HeartIcon, StarIcon } from '../components/Icons';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
 import { useAudioPlayer } from '../context/AudioPlayerContext';
+import { trackScreenView, trackStoryViewed } from '../utils/analytics';
 
 export const StoryDetailScreen = ({ 
   story, onBack, onFavoriteToggle
@@ -13,6 +14,13 @@ export const StoryDetailScreen = ({
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
   const { loadStory, currentStory } = useAudioPlayer();
+
+  useEffect(() => {
+    trackScreenView('StoryDetail');
+    if (story) {
+      trackStoryViewed(story._id || story.id, story.title);
+    }
+  }, []);
 
   // Load story into player when screen opens
   useEffect(() => {
@@ -35,8 +43,8 @@ export const StoryDetailScreen = ({
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background },
-    header: { padding: 24, paddingTop: 60, paddingBottom: 30, justifyContent: 'flex-end' },
-    backBtn: { marginBottom: 20 },
+    header: { padding: 24, paddingTop: 60, paddingBottom: 20, justifyContent: 'flex-end' },
+    backBtn: { marginBottom: 0 },
     backBtnText: { color: '#667eea', fontWeight: '700', fontSize: 16 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
     favoriteBtn: { 
@@ -46,9 +54,9 @@ export const StoryDetailScreen = ({
       alignItems: 'center',
       marginLeft: 12,
     },
-    title: { fontSize: 32, fontWeight: '800', color: theme.text, marginBottom: 8, flex: 1 },
-    author: { color: theme.textSecondary, marginTop: 5, fontSize: 16 },
-    content: { padding: 24, backgroundColor: theme.background, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30, paddingBottom: 40 },
+    title: { fontSize: 26, fontWeight: '800', color: theme.text, marginBottom: 0, flex: 1 },
+    author: { color: theme.textSecondary, marginTop: 0, fontSize: 14 },
+    content: { padding: 24, backgroundColor: theme.background, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -20, paddingBottom: 40 },
     playButton: { 
       marginBottom: 20, 
       borderRadius: 16, 
@@ -78,14 +86,14 @@ export const StoryDetailScreen = ({
       fontSize: 16,
       letterSpacing: 1
     },
-    statsRow: { borderRadius: 15, marginBottom: 20, overflow: 'hidden' },
-    statsGradient: { flexDirection: 'row', justifyContent: 'space-around', padding: 12 },
+    statsRow: { borderRadius: 15, marginBottom: 15, marginTop: -10, overflow: 'hidden' },
+    statsGradient: { flexDirection: 'row', justifyContent: 'space-around', padding: 8, paddingVertical: 8 },
     statItem: { alignItems: 'center' },
-    statValue: { color: theme.text, fontSize: 16, fontWeight: '700', marginBottom: 2 },
-    statLabel: { color: theme.textSecondary, fontSize: 11 },
-    sectionTitle: { color: theme.text, fontSize: 20, fontWeight: '700', marginBottom: 12, marginTop: 8 },
-    description: { color: theme.textSecondary, lineHeight: 24, fontSize: 15, marginBottom: 20 },
-    pageContainer: { borderRadius: 15, marginBottom: 20, height: 300, overflow: 'hidden' },
+    statValue: { color: theme.text, fontSize: 15, fontWeight: '700', marginBottom: 2 },
+    statLabel: { color: theme.textSecondary, fontSize: 10 },
+    sectionTitle: { color: theme.text, fontSize: 18, fontWeight: '700', marginBottom: 10, marginTop: 0 },
+    description: { color: theme.textSecondary, lineHeight: 22, fontSize: 14, marginBottom: 10 },
+    pageContainer: { borderRadius: 15, marginBottom: 20, height: 400, overflow: 'hidden' },
     pageGradient: { flex: 1, padding: 20 },
     textContentScroll: { flex: 1 },
     textContent: { color: theme.text, lineHeight: 28, fontSize: 16, textAlign: 'justify' },
@@ -110,26 +118,35 @@ export const StoryDetailScreen = ({
       alignItems: 'center'
     },
     yourRatingLabel: { color: theme.text, fontSize: 15, fontWeight: '600' },
-    ratingLabel: { color: theme.text, fontSize: 16, fontWeight: '600', marginBottom: 12 },
+    ratingLabel: { color: theme.text, fontSize: 14, fontWeight: '600', marginBottom: 10 },
     starsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-    star: { fontSize: 32 },
+    star: { fontSize: 24 },
     reviewInput: { 
       backgroundColor: theme.card, 
       borderRadius: 10, 
       padding: 12, 
       color: theme.text, 
       fontSize: 14,
-      minHeight: 100,
+      minHeight: 60,
+      maxHeight: 80,
       textAlignVertical: 'top',
       marginBottom: 16
     },
     submitBtn: { 
       backgroundColor: '#667eea', 
       borderRadius: 10, 
-      padding: 14, 
+      padding: 12, 
       alignItems: 'center' 
     },
-    submitBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    submitBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    rateButton: { borderRadius: 15, overflow: 'hidden', marginTop: -5 },
+    rateButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 8 },
+    rateButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+    modalContent: { width: '100%', borderRadius: 20, padding: 20, maxHeight: '70%' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+    modalTitle: { fontSize: 18, fontWeight: '700' },
+    modalClose: { fontSize: 28, color: '#666' },
     alreadyRatedText: { color: theme.text, fontSize: 16, marginBottom: 12, textAlign: 'center', fontWeight: '600' },
     userRatingDisplay: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginBottom: 16 },
     userRatingText: { color: '#667eea', fontWeight: '700', fontSize: 18 },
@@ -183,6 +200,7 @@ export const StoryDetailScreen = ({
   const [hasRated, setHasRated] = useState(false);
   const [storyData, setStoryData] = useState(story);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   useEffect(() => {
     console.log('StoryDetailScreen mounted with story:', story);
@@ -335,7 +353,7 @@ export const StoryDetailScreen = ({
           colors={isDark ? ['#1a1a2e', '#16213e'] : ['#f0f0f0', '#e0e0e0']} 
           style={styles.header}
         >
-          <TouchableOpacity onPress={onBack} style={styles.backBtn}>
+          <TouchableOpacity onPress={onBack} style={styles.backBtn} activeOpacity={0.6} delayPressIn={0}>
             <Text style={styles.backBtnText}>← Library</Text>
           </TouchableOpacity>
           <View style={styles.headerRow}>
@@ -374,7 +392,7 @@ export const StoryDetailScreen = ({
           </View>
 
           <Text style={styles.sectionTitle}>About this story</Text>
-          <Text style={styles.description}>{storyData.description || 'No description available'}</Text>
+          <Text style={styles.description} numberOfLines={1}>{storyData.description || 'No description available'}</Text>
           
           {pages.length > 0 && (
             <>
@@ -397,6 +415,16 @@ export const StoryDetailScreen = ({
               </View>
             </>
           )}
+
+          <TouchableOpacity 
+            style={[styles.rateButton, { backgroundColor: isDark ? '#1f2937' : '#f3f4f6', borderColor: theme.border, borderWidth: 1 }]}
+            onPress={() => setShowRatingModal(true)}
+          >
+            <View style={styles.rateButtonGradient}>
+              <StarIcon color={isDark ? '#667eea' : '#8b5cf6'} size={20} filled />
+              <Text style={[styles.rateButtonText, { color: theme.text }]}>Rate this Story</Text>
+            </View>
+          </TouchableOpacity>
 
           {loadingReviews ? (
             <Loader message="Loading reviews..." />
@@ -434,60 +462,59 @@ export const StoryDetailScreen = ({
             </>
           )}
 
-          <Text style={styles.sectionTitle}>Rate & Review</Text>
-          <View style={styles.ratingContainer}>
-            <LinearGradient
-              colors={['#8b5cf620', '#667eea20']}
-              start={{ x: 0, y: 0 }} 
-              end={{ x: 1, y: 1 }}
-              style={styles.ratingGradient}
-            >
-            {/* {hasRated && (
-              <View style={styles.yourRatingBox}>
-                <Text style={styles.yourRatingLabel}>Your Rating: {userRating}/5</Text>
+          <Modal
+            visible={showRatingModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowRatingModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+                <View style={styles.modalHeader}>
+                  <Text style={[styles.modalTitle, { color: theme.text }]}>Rate & Review</Text>
+                  <TouchableOpacity onPress={() => setShowRatingModal(false)}>
+                    <Text style={styles.modalClose}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.ratingLabel, { color: theme.text }]}>Your Rating</Text>
                 <View style={styles.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Text key={star} style={styles.star}>
-                      {star <= userRating ? '⭐' : '☆'}
-                    </Text>
+                    <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                      <Text style={[styles.star, { color: star <= (rating || userRating || 0) ? '#f59e0b' : (isDark ? '#666' : '#ddd') }]}>
+                        {star <= (rating || userRating || 0) ? '★' : '★'}
+                      </Text>
+                    </TouchableOpacity>
                   ))}
                 </View>
-              </View>
-            )} */}
-            <Text style={styles.ratingLabel}>Your Rating</Text>
-            <View style={styles.starsRow}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                  <Text style={[styles.star, { color: star <= (rating || userRating || 0) ? '#f59e0b' : (isDark ? '#666' : '#ddd') }]}>
-                    {star <= (rating || userRating || 0) ? '★' : '★'}
-                  </Text>
+                
+                <TextInput
+                  style={[styles.reviewInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
+                  placeholder="Write your review"
+                  placeholderTextColor={theme.textSecondary}
+                  value={review}
+                  onChangeText={setReview}
+                  multiline
+                  numberOfLines={2}
+                />
+                
+                <TouchableOpacity 
+                  style={[styles.submitBtn, { backgroundColor: isDark ? '#1f2937' : '#f3f4f6', borderColor: theme.border, borderWidth: 1 }]} 
+                  onPress={() => {
+                    handleSubmitRating();
+                    setShowRatingModal(false);
+                  }}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <ActivityIndicator color={theme.text} />
+                  ) : (
+                    <Text style={[styles.submitBtnText, { color: theme.text }]}>Submit Your Review</Text>
+                  )}
                 </TouchableOpacity>
-              ))}
+              </View>
             </View>
-            
-            <TextInput
-              style={styles.reviewInput}
-              placeholder="Write your review (optional)"
-              placeholderTextColor="#666"
-              value={review}
-              onChangeText={setReview}
-              multiline
-              numberOfLines={4}
-            />
-            
-            <TouchableOpacity 
-              style={styles.submitBtn} 
-              onPress={handleSubmitRating}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.submitBtnText}>Submit Rating</Text>
-              )}
-            </TouchableOpacity>
-            </LinearGradient>
-          </View>
+          </Modal>
         </View>
       </ScrollView>
     </View>

@@ -120,8 +120,8 @@ export const SignupScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   gradient: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', padding: SPACING.lg },
-  header: { alignItems: 'center', marginBottom: SPACING.xxl },
+  scrollContent: { flexGrow: 1, paddingHorizontal: SPACING.lg, paddingTop: SPACING.xl, paddingBottom: SPACING.lg },
+  header: { alignItems: 'center', marginBottom: SPACING.xl, marginTop: -SPACING.xxl },
   title: { ...TYPOGRAPHY.h1, color: COLORS.text, marginBottom: SPACING.sm },
   subtitle: { ...TYPOGRAPHY.body, color: COLORS.textSecondary },
   form: { width: '100%' },

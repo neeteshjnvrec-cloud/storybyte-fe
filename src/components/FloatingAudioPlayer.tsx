@@ -267,22 +267,30 @@ export const FloatingAudioPlayer: React.FC = () => {
               <Text style={[styles.collapsedSubtitle, { color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)' }]}>Page {currentPage + 1} of {currentStory.pages.length}</Text>
             </View>
             <View style={styles.collapsedControls}>
-              <TouchableOpacity onPress={() => {}} style={styles.collapsedBtn}>
+              <TouchableOpacity onPress={(e) => { e.stopPropagation(); }} style={styles.collapsedBtn}>
                 <Text style={[styles.collapsedIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>•••</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={previousPage} style={styles.collapsedBtn}>
+              <TouchableOpacity onPress={(e) => { e.stopPropagation(); previousPage(); }} style={styles.collapsedBtn}>
                 <Text style={[styles.collapsedIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>◀◀</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => seekTo(Math.max(0, position - 10000))} style={styles.collapsedBtn}>
+              <TouchableOpacity onPress={(e) => { e.stopPropagation(); seekTo(Math.max(0, position - 10000)); }} style={styles.collapsedBtn}>
                 <Text style={[styles.collapsedIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>⟲</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={togglePlayPause} style={[styles.collapsedPlayBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(102, 126, 234, 0.15)' }]}>
+              <TouchableOpacity 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  togglePlayPause();
+                }} 
+                style={[styles.collapsedPlayBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(102, 126, 234, 0.15)' }]}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
                 <Text style={[styles.collapsedPlayIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>{isPlaying ? '❚❚' : '▶'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => seekTo(Math.min(duration, position + 10000))} style={styles.collapsedBtn}>
+              <TouchableOpacity onPress={(e) => { e.stopPropagation(); seekTo(Math.min(duration, position + 10000)); }} style={styles.collapsedBtn}>
                 <Text style={[styles.collapsedIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>⟳</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={nextPage} style={styles.collapsedBtn}>
+              <TouchableOpacity onPress={(e) => { e.stopPropagation(); nextPage(); }} style={styles.collapsedBtn}>
                 <Text style={[styles.collapsedIcon, { color: isDark ? '#fff' : '#1a1a1a' }]}>▶▶</Text>
               </TouchableOpacity>
             </View>

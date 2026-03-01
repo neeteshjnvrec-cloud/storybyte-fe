@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SearchIcon, StarIcon } from '../components/Icons';
 import { useTheme, lightTheme, darkTheme } from '../hooks/useTheme';
+import { trackScreenView, trackSearch, trackLanguageChanged } from '../utils/analytics';
 
 export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLanguage, setSelectedLanguage, onLoadMore, hasMore, loadingMore }: any) => {
   const { isDark } = useTheme();
   const theme = isDark ? darkTheme : lightTheme;
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    trackScreenView('Home');
+  }, []);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.length > 2) {
+      trackSearch(query);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -119,7 +131,7 @@ export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLangu
             placeholder="Search stories..."
             placeholderTextColor="#8b9dc3"
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={handleSearch}
           />
         </View>
       </View>
@@ -130,7 +142,10 @@ export const HomeScreen = ({ stories, setSelectedStory, setScreen, selectedLangu
           <TouchableOpacity 
             key={lang}
             style={[styles.pillBtn, selectedLanguage === lang && styles.pillBtnActive]}
-            onPress={() => setSelectedLanguage(lang as any)}
+            onPress={() => {
+              setSelectedLanguage(lang as any);
+              trackLanguageChanged(lang);
+            }}
           >
             <Text style={[styles.pillText, selectedLanguage === lang && styles.pillTextActive]}>
               {lang === 'all' ? 'All' : lang === 'en' ? 'English' : 'हिंदी'}

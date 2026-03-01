@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 13.2.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -26,8 +26,10 @@
       }
     },
     "production": {
+      "channel": "production",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease"
       },
       "env": {
         "EXPO_NO_CAPABILITY_SYNC": "1"
